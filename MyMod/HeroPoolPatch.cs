@@ -8,31 +8,29 @@ using System.Reflection;
 using LogicFramework;
 using MessagePack;
 using Utility.GameSystem.LogicFrameworkX;
+using GameMain.FightSystem;
+using MatchBuffs;
+using HeroesBuffs;
+using BepInEx.Logging;
 
-
-
-namespace GameMain.AthleteSystem
+namespace HeroPoolPatch
 {
-	[BepInPlugin("com.example.athletepatch", "Athlete System Patch", "1.0.0")]
-	public class AthletePatchPlugin : BaseUnityPlugin
-	{
-		private void Awake()
-		{
-			// Initialize Harmony and apply all patches
-			var harmony = new Harmony("com.example.athletepatch");
-			harmony.PatchAll();
-			Logger.LogInfo("Athlete System Patch Loaded");
-		}
-	}
-
+	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HeropoolPatch
 	[HarmonyPatch(typeof(Athlete.DataComponent))]
 	public static class AthleteDataComponentPatch
 	{
-		// Patch SetHeroPoolMaxRandom to ensure the random value doesn't exceed 4
+		private static ManualLogSource Logger;
+		public static void InitializeLogger(ManualLogSource logger)
+		{
+			Logger = logger;
+		}
+
 		[HarmonyPatch("SetHeroPoolMaxRandom")]
 		[HarmonyPostfix]
 		static void PostfixSetHeroPoolMaxRandom(Athlete.DataComponent __instance)
 		{
+
+
 			// Access the hero pool max value that was set
 			int currentMax = __instance.GetHeroPoolMax();
 
@@ -40,7 +38,7 @@ namespace GameMain.AthleteSystem
 			if (currentMax > 4)
 			{
 				__instance.SetHeroPoolMax(4);
-				Console.WriteLine("SetHeroPoolMaxRandom value limited to 4");
+				Logger?.LogInfo("SetHeroPoolMaxRandom value limited to 4");
 			}
 		}
 
@@ -54,7 +52,7 @@ namespace GameMain.AthleteSystem
 				if (__result > 4)
 				{
 					__result = 4; // Limit the count to 4
-					Console.WriteLine("GetHeroDataCount limited to 4.");
+					Logger?.LogInfo("GetHeroDataCount limited to 4.");
 				}
 			}
 		}
@@ -71,7 +69,7 @@ namespace GameMain.AthleteSystem
 				if (__instance.heroPoolCount > 4)
 				{
 					__instance.heroPoolCount = 4;
-					Console.WriteLine("Hero pool count limited to 4 during saving.");
+					Logger?.LogInfo("Hero pool count limited to 4 during saving.");
 				}
 			}
 		}
@@ -86,19 +84,9 @@ namespace GameMain.AthleteSystem
 				if (__instance.heroPoolCount > 4)
 				{
 					__instance.heroPoolCount = 4;
-					Console.WriteLine("Hero pool count limited to 4 during loading.");
+					Logger?.LogInfo("Hero pool count limited to 4 during loading.");
 				}
 			}
 		}
-
-		//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> MESSAGEPACKPATCH
-
-
-
-
-
-
-
-
 	}
 }

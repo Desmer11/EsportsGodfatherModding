@@ -7,17 +7,29 @@ using Utility;
 using LogicFramework;
 using Utility.GameSystem.LogicFrameworkX;
 using Utility.ValueStruct;
+using BepInEx;
+using BepInEx.Logging;
 
-namespace BuffsAndNerfs
+namespace HeroesBuffs
 {
 	[HarmonyPatch]
 	public static class ChangeHeroVariantPatch
 	{
+		private static ManualLogSource Logger;
+		public static void InitializeLogger(ManualLogSource logger)
+		{
+			Logger = logger;
+		}
+
+
 		private static readonly Random Rng = new Random();
 
 		[HarmonyPatch(typeof(GameMain.Game.RuleComponent), "ChangeHeroVariant")]
 		[HarmonyPostfix]
 		public static void Postfix(
+
+
+
 			int abilityCount,
 			int cardCount,
 			Dictionary<UnitSetting, (int OldIndex, int NewIndex)> abilityChange,
@@ -36,29 +48,28 @@ namespace BuffsAndNerfs
 			var buffs = shuffledHeroes.Take(5).ToList();
 			var nerfs = shuffledHeroes.Skip(5).Take(5).ToList();
 
-			// Apply buffs
-			foreach (var hero in buffs)
-			{
-				var unit = GetUnitFromSetting(hero);
-				if (unit != null)
-					ApplyBuff(unit);
-			}
+			//foreach (var hero in buffs)
+			//{
+			//	var unit = GetUnitFromSetting(hero);
+			//	if (unit != null)
+			//		ApplyBuff(unit);
+			//}
 
-			// Apply nerfs
-			foreach (var hero in nerfs)
-			{
-				var unit = GetUnitFromSetting(hero);
-				if (unit != null)
-					ApplyNerf(unit);
-			}
+
+			//foreach (var hero in nerfs)
+			//{
+			//	var unit = GetUnitFromSetting(hero);
+			//	if (unit != null)
+			//		ApplyNerf(unit);
+			//}
 		}
 
 		// Converts UnitSetting to Unit using the game's UnitManager
-		private static Unit GetUnitFromSetting(UnitSetting setting)
-		{
-			// Assuming GameMain.UnitSystem.UnitCollection contains all active units
-			return GameMain.UnitSystem.UnitCollection.FirstOrDefault(unit => unit.Setting == setting);
-		}
+		//private static Unit GetUnitFromSetting(UnitSetting setting)
+		//{
+
+		//	return GameMain.UnitSystem.UnitCollection.FirstOrDefault(unit => unit.Setting == setting);
+		//}
 
 
 		// Apply buffs to a hero
