@@ -21,11 +21,25 @@ namespace MatchBuffs
 	public class Patch_GetUnits
 	{
 		private static bool hasBuffsApplied = false;
+		private static bool hasReloaded = false;
+
+
+		private static ManualLogSource Logger;
+		public static void InitializeLogger(ManualLogSource logger)
+		{
+			Logger = logger;
+		}
+
 		static void Postfix(Battle __instance, Predicate<Unit> predicate, ref IEnumerable<Unit> __result)
 		{
 			if (hasBuffsApplied == true)
 			{
 				Logger?.LogInfo($"Buff logic already executed. Skipping further application {hasBuffsApplied}");
+				return;
+			}
+			if (hasReloaded == true)
+			{
+				Logger?.LogInfo($"hasReloaded logic already executed. Skipping further application {hasReloaded}");
 				return;
 			}
 			if (__instance == null || __result == null)
@@ -66,6 +80,9 @@ namespace MatchBuffs
 
 				Logger?.LogInfo($"Buff applied to unit: {selectedUnits[0].Name}");
 				Logger?.LogInfo($"Buff applied to unit: {selectedUnits[1].Name}");
+				// After buffs are applied
+			
+				ReloadUnits(selectedUnits, __instance);
 
 				hasBuffsApplied = true;
 			}
@@ -77,39 +94,7 @@ namespace MatchBuffs
 
 		}
 
-		private static ManualLogSource Logger;
-		public static void InitializeLogger(ManualLogSource logger)
-		{
-			Logger = logger;
-		}
-
-
-		private static void ApplyBuffLogicToUnits(Battle battle, Predicate<Unit> predicate)
-		{
-			var units = battle.GetUnits(predicate).ToList(); // Collect all units matching the predicate
-
-			if (units.Count >= 2)
-			{
-				var random = new System.Random();
-
-				// Randomly select two units from the list
-				var selectedUnits = units.OrderBy(_ => random.Next()).Take(2).ToArray();
-
-				// Apply buffs and nerfs
-				Logger?.LogInfo($"[BuffApply] BEFORE {selectedUnits[0].Name}: {selectedUnits[0].Attack}, {selectedUnits[0].BattleGainGoldRatio}, {selectedUnits[0].HPMax}, {selectedUnits[0].AccuracyBattle}");
-				Logger?.LogInfo($"[BuffApply] BEFORE {selectedUnits[1].Name}: {selectedUnits[1].Attack}, {selectedUnits[1].BattleGainGoldRatio}, {selectedUnits[1].HPMax}, {selectedUnits[1].AccuracyBattle}");
-				ApplyBuff(selectedUnits[0]);
-				Logger?.LogInfo($"Buff applied to unit: {selectedUnits[0].Name}");
-				ApplyNerf(selectedUnits[1]);
-				Logger?.LogInfo($"Buff applied to unit: {selectedUnits[1].Name}");
-
-			}
-			else
-			{
-				Logger?.LogInfo("Not enough units available for buff/nerf application.");
-			}
-		}
-
+	
 		private static void ApplyBuff(Unit unit)
 		{
 
@@ -200,7 +185,7 @@ namespace MatchBuffs
 			Logger?.LogInfo($"[BuffApply] BUFFED {unit.Name}:\n GoldRatio: {unit.BattleGainGoldRatio},\n Health: {unit.HPMax},\n Armor: {unit.Armor},\n Attack: {unit.Attack},\n Crit: {unit.CritChance}\n");
 
 
-
+			Logger?.LogInfo($"Unit instance: {unit.GetHashCode()}");
 
 
 
@@ -221,5 +206,60 @@ namespace MatchBuffs
 			hasBuffsApplied = false;
 			Logger?.LogInfo($"Buff state has been reset. {hasBuffsApplied}");
 		}
+
+		public static void ResethasReloaded()
+		{
+			hasReloaded = false;
+			Logger?.LogInfo($"Buff state has been reset. {hasBuffsApplied}");
+		}
+
+
+		private static void ReloadUnits(IEnumerable<Unit> units, Battle battle)
+		{
+		
+			Logger?.LogInfo("Reloading all units to ensure updated stats are applied.");
+			var updatedUnits = battle.GetUnits(unit => units.Contains(unit)).ToList();
+
+			foreach (var updatedUnit in updatedUnits)
+			{
+				Logger?.LogInfo($"Reloaded Unit: {updatedUnit.Name} - Stats:\n" +
+								$"GoldRatio: {updatedUnit.BattleGainGoldRatio}, " +
+								$"Health: {updatedUnit.HPMax}, " +
+								$"Armor: {updatedUnit.Armor}, " +
+								$"Attack: {updatedUnit.Attack}, " +
+								$"Crit: {updatedUnit.CritChance}");
+
+			
+			}
+		}
 	}
 }
+
+
+
+
+//private static void ApplyBuffLogicToUnits(Battle battle, Predicate<Unit> predicate)
+//{
+//	var units = battle.GetUnits(predicate).ToList(); // Collect all units matching the predicate
+
+//	if (units.Count >= 2)
+//	{
+//		var random = new System.Random();
+
+//		// Randomly select two units from the list
+//		var selectedUnits = units.OrderBy(_ => random.Next()).Take(2).ToArray();
+
+//		// Apply buffs and nerfs
+//		Logger?.LogInfo($"[BuffApply] BEFORE {selectedUnits[0].Name}: {selectedUnits[0].Attack}, {selectedUnits[0].BattleGainGoldRatio}, {selectedUnits[0].HPMax}, {selectedUnits[0].AccuracyBattle}");
+//		Logger?.LogInfo($"[BuffApply] BEFORE {selectedUnits[1].Name}: {selectedUnits[1].Attack}, {selectedUnits[1].BattleGainGoldRatio}, {selectedUnits[1].HPMax}, {selectedUnits[1].AccuracyBattle}");
+//		ApplyBuff(selectedUnits[0]);
+//		Logger?.LogInfo($"Buff applied to unit: {selectedUnits[0].Name}");
+//		ApplyNerf(selectedUnits[1]);
+//		Logger?.LogInfo($"Buff applied to unit: {selectedUnits[1].Name}");
+
+//	}
+//	else
+//	{
+//		Logger?.LogInfo("Not enough units available for buff/nerf application.");
+//	}
+//}

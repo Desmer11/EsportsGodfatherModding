@@ -41,8 +41,9 @@ internal class Patch_SetBattleRunState
             Logger?.LogInfo($"Resetting buff state. Current RunState: {__instance.RunState}");
 
             Patch_GetUnits.ResetBuffState();
+				Patch_GetUnits.ResethasReloaded();
 
-            Logger?.LogInfo("Buff state reset complete.");
+				Logger?.LogInfo("Buff state reset complete.");
         }
         catch (Exception ex)
         {
