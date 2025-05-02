@@ -34,13 +34,13 @@ namespace Initial
 				// Initialize and apply all patches
 				InitializePatches(harmony);
 
-				//>>>>>>>>>>>>>>>>>>>> LOGGING BATTLE
+				//>>>>>>>>>>>>>>>>>>>> LOGGING BATTLE METHODS
 
-				var battleType = typeof(GameMain.BattleSystem.Battle);
-				foreach (var method in battleType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
-				{
-					Logger?.LogInfo($"[Debug] Found method: {method.Name}");
-				}
+				//var battleType = typeof(GameMain.BattleSystem.Battle);
+				//foreach (var method in battleType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+				//{
+				//	Logger?.LogInfo($"[Debug] Found method: {method.Name}");
+				//}
 
 
 
@@ -74,8 +74,8 @@ namespace Initial
 				MatchBuffs.Patch_GetUnits.InitializeLogger(Logger);
 				Logger.LogInfo("MatchBuffs.Patch initialized.");
 
-				MatchDespawn.Patch_SetBattleRunState.InitializeLogger(Logger);
-				Logger.LogInfo("Patch_OnReset.Patch initialized.");
+				//MatchDespawn.Patch_SetBattleRunState.InitializeLogger(Logger);
+				//Logger.LogInfo("Patch_OnReset.Patch initialized.");
 
 
 

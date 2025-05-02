@@ -99,5 +99,6 @@ namespace HeroesBuffs
 
 			UnityEngine.Debug.Log($"Nerfed {unit.Name}: -50% Max HP, -50% Gold");
 		}
+
 	}
 }
