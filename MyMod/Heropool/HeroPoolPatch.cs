@@ -9,11 +9,10 @@ using LogicFramework;
 using MessagePack;
 using Utility.GameSystem.LogicFrameworkX;
 using GameMain.FightSystem;
-using MatchBuffs;
-using HeroesBuffs;
+using HeroBuffs;
 using BepInEx.Logging;
 
-namespace HeroPoolPatch
+namespace Heropool
 {
 	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HeropoolPatch
 	[HarmonyPatch(typeof(Athlete.DataComponent))]
@@ -59,11 +58,11 @@ namespace HeroPoolPatch
 
 		//------------------------------------------------------------------------>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-----SAVEDATA
 
-		[HarmonyPatch(typeof(GameMain.AthleteSystem.Athlete.SaveData), "OnSaveData")]
+		[HarmonyPatch(typeof(Athlete.SaveData), "OnSaveData")]
 		public static class AthleteSaveDataOnSavePatch
 		{
 			[HarmonyPostfix]
-			public static void Postfix(GameMain.AthleteSystem.Athlete.SaveData __instance)
+			public static void Postfix(Athlete.SaveData __instance)
 			{
 				// Limit heroPoolCount to 4 during saving
 				if (__instance.heroPoolCount > 4)
@@ -74,11 +73,11 @@ namespace HeroPoolPatch
 			}
 		}
 
-		[HarmonyPatch(typeof(GameMain.AthleteSystem.Athlete.SaveData), "OnLoadObj")]
+		[HarmonyPatch(typeof(Athlete.SaveData), "OnLoadObj")]
 		public static class AthleteSaveDataOnLoadPatch
 		{
 			[HarmonyPostfix]
-			public static void Postfix(GameMain.AthleteSystem.Athlete.SaveData __instance)
+			public static void Postfix(Athlete.SaveData __instance)
 			{
 				// Limit heroPoolCount to 4 during loading
 				if (__instance.heroPoolCount > 4)

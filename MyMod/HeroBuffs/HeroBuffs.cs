@@ -10,7 +10,7 @@ using Utility.ValueStruct;
 using BepInEx;
 using BepInEx.Logging;
 
-namespace HeroesBuffs
+namespace HeroBuffs
 {
 	[HarmonyPatch]
 	public static class ChangeHeroVariantPatch
