@@ -5,7 +5,7 @@ using Utility.ValueStruct;
 
 namespace LogicFramework.EffectorScript
 {
-	public static class BattleRule_RuleBonus
+	public static class BattleRule_RuleBonusPatch
 	{
 		[EffectorScript("e57d5b99-f312-4c5f-cccc-8d3f9c2d8e72")]
 		public class C1 : EffectorScriptBase
@@ -67,6 +67,9 @@ namespace LogicFramework.EffectorScript
 				Logger?.LogInfo($"Entity {context.InvokerEntity} is not a Monster. Returning default value.");
 				return default(Value);
 			}
+
+
+
 		}
 	}
 }

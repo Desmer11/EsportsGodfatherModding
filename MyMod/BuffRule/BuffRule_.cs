@@ -5,6 +5,7 @@
 //using Utility.GameSystem.LogicFrameworkX;
 //using Utility.ValueStruct;
 //using LogicFramework.EffectorScript;
+//using MyMod.Logger;
 
 //namespace LogicFramework.EffectorScript
 //{
@@ -18,7 +19,7 @@
 //			Logger = logger;
 //			Logger?.LogInfo($"BuffRule Starting");
 //		}
-		
+
 
 //		// Token: 0x02002FCD RID: 12237
 //		[EffectorScript("85be6145-b015-44a2-1111-a660b63195d4")]
@@ -95,7 +96,7 @@
 //					Logger?.LogInfo($"[P1] entity: {entity}");
 
 //					return Value.New(1000.0);
-			
+
 
 //				}
 //				return default(Value);
@@ -144,7 +145,7 @@
 //							.GetResult(true);
 //					}
 //				}
-			
+
 
 //				// We don’t produce a new mission here—just side‑effects
 //				return Value.Null;
