@@ -15,7 +15,8 @@ using HeroBuffs;
 using Heropool;
 using CustomBattleRules;
 using System.Reflection.Emit;
-//using CustomBattleRules;
+using System.Collections.Generic;
+using Utility.LogSystem;
 
 namespace Initial
 {
@@ -39,10 +40,18 @@ namespace Initial
 
 				Logger.LogInfo("AWAKE: System Patch initialized successfully.");
 				Logger.LogInfo("AWAKE: LogEffectorScripts.\n");
+
 				try
 				{
-					CustomBattleRules.CollectScriptsPatch.EffectorScriptCenter.CollectScripts();
+					//CustomBattleRules.CollectScriptsPatch.EffectorScriptCenter.CollectScripts();
 					LogEffectorScripts();
+					EffectorScriptCenterPatch.ApplyPatch();
+					//foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+					//{
+					//	Logger.LogInfo($"Loaded Assembly: {assembly.FullName}");
+					//}
+
+
 				}
 				catch (Exception ex)
 				{
@@ -57,6 +66,7 @@ namespace Initial
 			}
 			
 		}
+
 
 		private void LogEffectorScripts()
 		{
@@ -101,22 +111,9 @@ namespace Initial
 				Logger.LogError($"Failed to log EffectorScriptBase-derived scripts: {ex.Message}");
 			}
 
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				foreach (var instruction in instructions)
-				{
-					yield return instruction;
 
-					// Inject code to log script IDs after dictionary population
-					if (instruction.opcode == OpCodes.Callvirt && instruction.operand.ToString().Contains("Add"))
-					{
-						yield return new CodeInstruction(OpCodes.Ldstr, "Registered script ID: ");
-						yield return new CodeInstruction(OpCodes.Ldloc_0); // Assuming the variable holding the key
-						yield return new CodeInstruction(OpCodes.Call, typeof(Console).GetMethod("WriteLine"));
-					}
-				}
-			}
 		}
+
 
 
 		private void InitializePatches(Harmony harmony)
@@ -132,14 +129,14 @@ namespace Initial
 				//OnBattleEnteredPatch.InitializeLogger(Logger);
 				//Logger.LogInfo("LOGGER OnBattleEnteredPatch initialized LOGGER.");
 
-				CollectScriptsPatch.InitializeLogger(Logger);
+				EffectorScriptCenterPatch.InitializeLogger(Logger);
 				Logger.LogInfo("LOGGER CollectScriptsPatch initialized LOGGER.");
 
-				BattleRule_RuleBonusPatch.C1.InitializeLogger(Logger);
-				Logger.LogInfo("LOGGER BattleRule_RuleBonus C1 initialized LOGGER.");
+				//BattleRule_RuleBonusPatch.C1.InitializeLogger(Logger);
+				//Logger.LogInfo("LOGGER BattleRule_RuleBonus C1 initialized LOGGER.");
 
-				BattleRule_RuleBonusPatch.C2.InitializeLogger(Logger);
-				Logger.LogInfo("LOGGER BattleRule_RuleBonus C2 initialized LOGGER.");
+				//BattleRule_RuleBonusPatch.C2.InitializeLogger(Logger);
+				//Logger.LogInfo("LOGGER BattleRule_RuleBonus C2 initialized LOGGER.");
 
 
 
@@ -162,9 +159,16 @@ namespace Initial
 
 
 				// Apply all Harmony patches
-				harmony.PatchAll();
-				Logger.LogInfo("Harmony patches applied.");
-
+			
+				try
+				{
+					harmony.PatchAll();
+					Logger.LogInfo("Harmony patches applied.");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error applying Harmony patches: {ex}");
+				}
 
 			}
 			catch (Exception ex)
