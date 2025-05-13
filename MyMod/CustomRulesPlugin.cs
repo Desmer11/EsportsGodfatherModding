@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Reflection.Emit;
 using BepInEx.Logging;
-using GameMain.BattleSystem;
 using HarmonyLib;
-using LogicFramework.EffectorScript;
-using Mod;
-using Utility;
 using Utility.GameSystem.LogicFrameworkX;
-using Utility.LogSystem;
-
 
 namespace CustomBattleRules
 {
-	public static class CollectScriptsPatch
+	[HarmonyPatch]
+	public static class EffectorScriptCenterPatch
 	{
 		private static ManualLogSource Logger;
 
@@ -22,128 +15,98 @@ namespace CustomBattleRules
 		{
 			Logger = logger;
 		}
-		// Postfix method
-		public static class EffectorScriptCenter
+
+		public static void ApplyPatch()
 		{
-			// Token: 0x06000584 RID: 1412 RVA: 0x00010E20 File Offset: 0x0000F020
-			static EffectorScriptCenter()
+			TestStaticInitializer();
+			InvokeCollectScripts();
+			AccessSDictField();
+		}
+		private static void TestStaticInitializer()
+		{
+			try
 			{
-				try
+				// Use reflection to get fields or methods without triggering static constructor
+				var field = AccessTools.Field(typeof(EffectorScriptCenter), "s_dict");
+				var method = AccessTools.Method(typeof(EffectorScriptCenter), "CollectScripts");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Error bypassing static initializer: {ex.Message}");
+			}
+			try
+			{
+				var type = typeof(EffectorScriptCenter);
+				System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+				Logger.LogInfo("EffectorScriptCenter static constructor executed successfully.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"EffectorScriptCenter static constructor threw an exception: {ex.Message}");
+				if (ex.InnerException != null)
 				{
-					Logger?.LogInfo("EffectorScriptCenter static constructor starting...");
-					CollectScripts();
-					Logger?.LogInfo("EffectorScriptCenter static constructor completed successfully.");
-				}
-				catch (Exception ex)
-				{
-					Logger?.LogError($"EffectorScriptCenter initialization failed: {ex}");
+					Logger.LogError($"Inner exception: {ex.InnerException.Message}");
+					Logger.LogError($"Stack trace: {ex.InnerException.StackTrace}");
 				}
 			}
+		}
 
-			// Token: 0x06000585 RID: 1413 RVA: 0x00010E34 File Offset: 0x0000F034
-			public static void CollectScripts()
+		private static void InvokeCollectScripts()
+		{
+			try
 			{
-				if (AllTypes.Classes == null || !AllTypes.Classes.Any())
+				var collectScriptsMethod = AccessTools.Method(typeof(EffectorScriptCenter), "CollectScripts");
+				if (collectScriptsMethod != null)
 				{
-					Logger?.LogError("AllTypes.Classes is null or empty. Initialization cannot proceed.");
-					return;
+					collectScriptsMethod.Invoke(null, null);
+					Logger.LogInfo("Successfully invoked CollectScripts method.");
 				}
-
-				Logger?.LogInfo("Starting to collect EffectorScriptBase instances...");
-
-				foreach (var type in AllTypes.Classes)
+				else
 				{
-					try
+					Logger.LogError("Failed to locate CollectScripts method.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Error invoking CollectScripts: {ex.Message}");
+				if (ex.InnerException != null)
+				{
+					Logger.LogError($"Inner exception: {ex.InnerException.Message}");
+					Logger.LogError($"Stack trace: {ex.InnerException.StackTrace}");
+				}
+			}
+		}
+
+		private static void AccessSDictField()
+		{
+			try
+			{
+				var sDictField = AccessTools.Field(typeof(EffectorScriptCenter), "s_dict");
+				if (sDictField != null)
+				{
+					var sDict = sDictField.GetValue(null) as Dictionary<Guid, EffectorScriptBase>;
+					if (sDict != null)
 					{
-						var instance = Activator.CreateInstance(type) as EffectorScriptBase;
-						if (instance == null)
+						Logger.LogInfo($"Successfully accessed s_dict with {sDict.Count} entries.");
+						foreach (var entry in sDict)
 						{
-							Logger?.LogWarning($"Failed to instantiate type: {type.FullName}");
-							continue;
+							Logger.LogInfo($"Entry: ID = {entry.Key}, Script = {entry.Value?.GetType().FullName}");
 						}
-					}
-					catch (Exception ex)
-					{
-						Logger?.LogError($"Error instantiating type {type.FullName}: {ex}");
-					}
-				}
-
-				IEnumerable<EffectorScriptBase> enumerable = ((IEnumerable<Type>)AllTypes.Classes)
-					.WithBase<EffectorScriptBase>(includeBaseClass: false, includeAbstract: false)
-					.WithAttribute<EffectorScriptAttribute>(true)
-					.CreateInstances(true)
-					.OfType<EffectorScriptBase>();
-
-				EffectorScriptCenter.s_dict.Clear();
-
-
-				foreach (EffectorScriptBase effectorScriptBase in enumerable)
-				{
-					EffectorScriptCenter.s_dict.Add(effectorScriptBase.Id, effectorScriptBase);
-				}
-
-				AddCustomScripts();
-
-
-				LogBuilder logBuilder = LogRecorders.Setting.Log();
-				if (logBuilder == null)
-				{
-					return;
-				}
-				logBuilder.AppendBrief(string.Format("收集效果器脚本{0}个", EffectorScriptCenter.s_dict.Count)).Record(false);
-			}
-
-			private static void AddCustomScripts()
-			{
-				try
-				{
-					Logger?.LogInfo("Adding custom scripts...");
-					var customScripts = new List<EffectorScriptBase>
-					{
-						new BattleRule_RuleBonusPatch.C1(),
-						new BattleRule_RuleBonusPatch.C2()
-					};
-
-					foreach (var script in customScripts)
-					{
-						AddScript(script);
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger?.LogError($"Error adding custom scripts: {ex}");
-				}
-			}
-
-			private static void AddScript(EffectorScriptBase script)
-			{
-				try
-				{
-					if (!s_dict.ContainsKey(script.Id))
-					{
-						s_dict.Add(script.Id, script);
-						Logger?.LogInfo($"Registered script: {script.Id}");
 					}
 					else
 					{
-						Logger?.LogWarning($"Script with ID {script.Id} already exists. Skipping.");
+						Logger.LogError("s_dict is null or could not be cast to the expected type.");
 					}
 				}
-				catch (Exception ex)
+				else
 				{
-					Logger?.LogError($"Error adding script {script.Id}: {ex.Message}");
+					Logger.LogError("Failed to locate s_dict field.");
 				}
 			}
-
-			// Token: 0x06000586 RID: 1414 RVA: 0x00010EDC File Offset: 0x0000F0DC
-			public static bool TryGetScript(Guid id, out EffectorScriptBase script)
+			catch (Exception ex)
 			{
-				return s_dict.TryGetValue(id, out script);
+				Logger.LogError($"Error accessing s_dict field: {ex.Message}");
 			}
-
-			// Token: 0x04000233 RID: 563
-			private static readonly Dictionary<Guid, EffectorScriptBase> s_dict = new Dictionary<Guid, EffectorScriptBase>();
 		}
 	}
 }
-
